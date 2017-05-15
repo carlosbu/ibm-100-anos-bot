@@ -10,28 +10,86 @@
  * @requires  app.js
  *
  */
-var watson = require('watson-developer-cloud');
-var CONVERSATION_NAME = "Bot-100-Anos"; // conversation name goes here.
-var fs = require('fs');
-// load local VCAP configuration
-var appEnv = null;
-var conversationWorkspace, conversation;
+ var watson = require('watson-developer-cloud');
+ var cfenv = require('cfenv');
+ var chrono = require('chrono-node');
+ var fs = require('fs');
+ // load local VCAP configuration
+ var vcapLocal = null;
+ var appEnv = null;
+ var appEnvOpts = {};
+ var conversationWorkspace, conversation;
 
-// =====================================
-// CREATE THE SERVICE WRAPPER ==========
-// =====================================
-// Create the service wrapper
-    conversation = watson.conversation({
-        url: "https://gateway.watsonplatform.net/conversation/api"
-        , username: "<username>"
-        , password: "<password>"
-        , version_date: '2017-04-10'
-        , version: 'v1'
-    });
-    // check if the workspace ID is specified in the environment
-    conversationWorkspace = "<workspace_id>";
-    // if not, look it up by name or create one
-// Allow clients to interact
+ // get the app environment from Cloud Foundry, defaulting to local VCAP
+ function initializeAppEnv() {
+     appEnv = cfenv.getAppEnv(appEnvOpts);
+     if (appEnv.isLocal) {
+         require('dotenv').load();
+     }
+     if (appEnv.services.cloudantNoSQLDB) {
+         initCloudant();
+     }
+     else {
+         console.error("No Cloudant service exists.");
+     }
+     if (appEnv.services.conversation) {
+         initConversation();
+     }
+     else {
+         console.error("No Watson conversation service exists");
+     }
+ }
+
+
+ // =====================================
+ // CREATE THE SERVICE WRAPPER ==========
+ // =====================================
+ // Create the service wrapper
+ function initConversation() {
+     var conversationCredentials = appEnv.getServiceCreds("bot-100-anos-conversation");
+     console.log(conversationCredentials);
+     var conversationUsername = process.env.CONVERSATION_USERNAME || conversationCredentials.username;
+     var conversationPassword = process.env.CONVERSATION_PASSWORD || conversationCredentials.password;
+     var conversationURL = process.env.CONVERSATION_URL || conversationCredentials.url;
+     conversation = watson.conversation({
+         url: conversationURL
+         , username: conversationUsername
+         , password: conversationPassword
+         , version_date: '2016-07-11'
+         , version: 'v1'
+     });
+     // check if the workspace ID is specified in the environment
+     conversationWorkspace = process.env.CONVERSATION_WORKSPACE;
+     // if not, look it up by name or create one
+     if (!conversationWorkspace) {
+         const workspaceName = 'bot-100-anos';
+         console.log('No conversation workspace configured in the environment.');
+         console.log(`Looking for a workspace named '${workspaceName}'...`);
+         conversation.listWorkspaces((err, result) => {
+             if (err) {
+                 console.log('Failed to query workspaces. Conversation will not work.', err);
+             }
+             else {
+                 const workspace = result.workspaces.find(workspace => workspace.name === workspaceName);
+                 if (workspace) {
+                     conversationWorkspace = workspace.workspace_id;
+                     console.log("Using Watson Conversation with username", conversationUsername, "and workspace", conversationWorkspace);
+                 }
+                 else {
+                     console.log('Error finding workspace_id');
+                 }
+             }
+         });
+     }
+     else {
+         console.log('Workspace ID was specified as an environment variable.');
+         console.log("Using Watson Conversation with username", conversationUsername, "and workspace", conversationWorkspace);
+     }
+ }
+ // =====================================
+ // REQUEST FOR BOT =====================
+ // =====================================
+ // Allow clients to interact with Bot
 
 var chatbot = {
     sendMessage: function (req, callback) {
@@ -54,7 +112,7 @@ var chatbot = {
                         , context: context
                     };
                     //                chatLogs(owner, conv, res, () => {
-                    //                    return 
+                    //                    return
                     callback(null, res);
                     //                });
                 }
@@ -65,7 +123,7 @@ var chatbot = {
                                 console.log("Error in sending message: ", err);
                                 return callback(err);
                             }else{
-                                
+
                             var conv = data.context.conversation_id;
                             console.log("Got response from Bot: ", JSON.stringify(data));
 //                            if (data.context.system.dialog_turn_counter > 1) {
@@ -174,7 +232,7 @@ function buildContextObject(req, callback) {
         , context: {}
     };
 
-    
+
     if (req.body.context) {
         context = req.body.context;
         params.context = context;
