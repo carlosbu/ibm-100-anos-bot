@@ -46,7 +46,7 @@
  // =====================================
  // Create the service wrapper
  function initConversation() {
-     var conversationCredentials = appEnv.getServiceCreds("bot-100-anos-conversation");
+     var conversationCredentials = appEnv.getServiceCreds("conversation");
      console.log(conversationCredentials);
      var conversationUsername = process.env.CONVERSATION_USERNAME || conversationCredentials.username;
      var conversationPassword = process.env.CONVERSATION_PASSWORD || conversationCredentials.password;
