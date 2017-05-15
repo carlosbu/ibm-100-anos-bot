@@ -20,6 +20,25 @@
  var appEnvOpts = {};
  var conversationWorkspace, conversation;
 
+fs.stat('./vcap-local.json', function (err, stat) {
+    if (err && err.code === 'ENOENT') {
+        // file does not exist
+        console.log('No vcap-local.json');
+        initializeAppEnv();
+    }
+    else if (err) {
+        console.log('Error retrieving local vcap: ', err.code);
+    }
+    else {
+        vcapLocal = require("../vcap-local.json");
+        console.log("Loaded local VCAP", vcapLocal);
+        appEnvOpts = {
+            vcap: vcapLocal
+        };
+        initializeAppEnv();
+    }
+});
+
  // get the app environment from Cloud Foundry, defaulting to local VCAP
  function initializeAppEnv() {
      appEnv = cfenv.getAppEnv(appEnvOpts);
