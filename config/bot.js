@@ -1,9 +1,9 @@
 /**
  * This file contains all of the web and hybrid functions for interacting with
- * Ana and the Watson Conversation service. When API calls are not needed, the
+ * Bot and the Watson Conversation service. When API calls are not needed, the
  * functions also do basic messaging between the client and the server.
  *
- * @summary   Functions for Ana Chat Bot.
+ * @summary   Functions for Chat Bot.
  *
  * @link      cloudco.mybluemix.net
  * @since     0.0.3
@@ -11,7 +11,7 @@
  *
  */
 var watson = require('watson-developer-cloud');
-var CONVERSATION_NAME = "Conversation-Demo"; // conversation name goes here.
+var CONVERSATION_NAME = "Bot-100-Anos"; // conversation name goes here.
 var fs = require('fs');
 // load local VCAP configuration
 var appEnv = null;
@@ -67,7 +67,7 @@ var chatbot = {
                             }else{
                                 
                             var conv = data.context.conversation_id;
-                            console.log("Got response from Ana: ", JSON.stringify(data));
+                            console.log("Got response from Bot: ", JSON.stringify(data));
 //                            if (data.context.system.dialog_turn_counter > 1) {
 //                                chatLogs(owner, conv, data, () => {
 //                                    return callback(null, data);
