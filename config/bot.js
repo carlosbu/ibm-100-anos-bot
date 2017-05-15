@@ -45,12 +45,6 @@ fs.stat('./vcap-local.json', function (err, stat) {
      if (appEnv.isLocal) {
          require('dotenv').load();
      }
-     if (appEnv.services.cloudantNoSQLDB) {
-         initCloudant();
-     }
-     else {
-         console.error("No Cloudant service exists.");
-     }
      if (appEnv.services.conversation) {
          initConversation();
      }
@@ -65,7 +59,7 @@ fs.stat('./vcap-local.json', function (err, stat) {
  // =====================================
  // Create the service wrapper
  function initConversation() {
-     var conversationCredentials = appEnv.getServiceCreds("conversation");
+     var conversationCredentials = appEnv.getServiceCreds("bot-100-anos-conversation");
      console.log(conversationCredentials);
      var conversationUsername = process.env.CONVERSATION_USERNAME || conversationCredentials.username;
      var conversationPassword = process.env.CONVERSATION_PASSWORD || conversationCredentials.password;
